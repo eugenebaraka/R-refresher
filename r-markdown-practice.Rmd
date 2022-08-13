@@ -1,0 +1,71 @@
+---
+title: "practice_rmarkdown"
+author: "Eugene Baraka"
+date: "2022-08-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+You've shared your ggplot2 visual with the marketing manager and received a grateful response, along with a follow up question. The manager now wants to know how the demographic groups represented in your plot compare in terms of the amount of contact they've had with the bank. In order to answer this question, you need a more expansive data set. The data set can be found here. Specific questions are as follows:
+
+- Read in the data and inspect it. Hint: take a look at the functions str(), summary(), and head().
+- What proportion of each column are missing values? Drop all the rows with missing values. Hint: look up the functions is.na(), colMeans(), and na.omit().
+- Finally, answer the manager's question about contact duration by demographic. Using ggplot, plot the average last_contact_duration for each cross section of educational attainment and marriage status. Note that there are multiple columns that contain information about marriage status and educational attainment.
+
+```{r}
+# library and data
+setwd("/Users/eugen/Desktop/test")
+library(tidyverse)
+
+data <- read.csv(file = "bank-marketing-data.csv")
+head(data)
+str(data)
+summary(data)
+```
+
+```{r}
+colMeans(is.na(data))*100
+#age column has 5% of values as NAs
+#last_contact_duration has 24.5% as NAs
+```
+
+```{r}
+#dropping NAs
+new_data <- na.omit(data)
+#recheck proportion of NAs
+colMeans(is.na(new_data)) * 100 #now no NAs is remaining in our data
+
+new_data[new_data$marital == "",]$marital <- "not_married"
+new_data[new_data$education == "",]$education <- "unknown"
+```
+
+
+```{r}
+new_grouped <- new_data %>% group_by(marital, education) %>% summarize(mean_duration = mean(last_contact_duration))
+
+ggplot(data = new_grouped, aes(x = marital, y = mean_duration, fill = education)) + 
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(x = "Marital status", y = "Education", title = "Mean last contact duration per marital status grouped by education", fill = "Education")
+```
+```{r}
+# Use fewer categories for readability
+another_data <- new_data %>% group_by(married_or_not, education_category) %>% summarize(mean_duration = mean(last_contact_duration))
+
+ggplot(data = another_data, aes(x = education_category , y = mean_duration, fill = married_or_not)) + 
+  geom_bar(position = "dodge", stat = "identity") + coord_flip() +
+  labs(x = "Education", y = "Marital status", title = "Mean last contact duration per marital status grouped by education", fill = "Education")
+```
+```{r}
+## We can also do it this without trying to find the average before
+ggplot(data = new_data, aes(x = education_category , y = last_contact_duration, fill = married_or_not)) + 
+  geom_bar(position = "dodge", stat = "summary", fun = "mean") + coord_flip() +
+  labs(x = "Education", y = "Marital status", title = "Mean last contact duration per marital status grouped by education", fill = "Education")
+
+#this gives us the same figure as above sans calculer the mean before! (by using stat = summary, and define fun=mean)
+
+```
+
