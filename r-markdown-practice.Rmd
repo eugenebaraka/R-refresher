@@ -69,3 +69,36 @@ ggplot(data = new_data, aes(x = education_category , y = last_contact_duration, 
 
 ```
 
+
+```{r}
+library(gapminder)
+library(tidyverse)
+```
+
+
+```{r}
+gapminder <- gapminder::gapminder
+head(gapminder)
+
+```
+```{r}
+summary(gapminder)
+```
+```{r}
+gapminder %>% ggplot2::ggplot(aes(x = lifeExp, fill = continent)) +
+  geom_density(alpha = 0.5) + 
+  labs(title = "Life Expectancy by Continent", x = "Life Expectancy", y = "Continet")
+```
+
+```{r}
+meanLifeExp <- gapminder %>% group_by(continent, year) %>% summarise(LifeExp = mean(lifeExp))
+head(meanLifeExp)
+```
+
+```{r}
+ggplot(data = meanLifeExp, aes(x = year, y = LifeExp, color = continent)) + 
+  geom_line(size = 1) + 
+  geom_point(size = 1.5) + 
+  labs(title = "Life Expectancy by continent between 1952 and 2007", x = "Year", y = "Mean Life Expectancy")
+```
+
